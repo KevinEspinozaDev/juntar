@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 /*
  * This file is part of PHPUnit.
  *
@@ -7,17 +7,18 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace PHPUnit\Framework;
-
-use Countable;
 
 /**
  * A Test can be run and collect its results.
  */
-interface Test extends Countable
+interface PHPUnit_Framework_Test extends Countable
 {
     /**
      * Runs a test and collects its result in a TestResult instance.
+     *
+     * @param PHPUnit_Framework_TestResult $result
+     *
+     * @return PHPUnit_Framework_TestResult
      */
-    public function run(TestResult $result = null): TestResult;
+    public function run(PHPUnit_Framework_TestResult $result = null);
 }

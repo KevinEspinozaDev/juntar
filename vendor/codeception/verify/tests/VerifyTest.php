@@ -1,12 +1,13 @@
 <?php
 
-include_once __DIR__.'/../src/Codeception/function.php';
+include __DIR__.'/../src/Codeception/function.php';
+include __DIR__.'/../vendor/autoload.php';
 
-class VerifyTest extends \Codeception\PHPUnit\TestCase {
+class VerifyTest extends PHPUnit_Framework_TestCase {
 
     protected $xml;
 
-    protected function _setUp()
+    protected function setUp()
     {
         $this->xml = new DomDocument;
         $this->xml->loadXML('<foo><bar>Baz</bar><bar>Baz</bar></foo>');
@@ -239,7 +240,7 @@ class VerifyTest extends \Codeception\PHPUnit\TestCase {
 
     public function testIsArray()
     {
-        verify([1,2,3])->array();
+        verify([1,2,3])->isArray();
         verify(false)->notArray();
     }
 
@@ -287,8 +288,38 @@ class VerifyTest extends \Codeception\PHPUnit\TestCase {
 
     public function testIsCallable()
     {
-        verify(function() {})->callable();
+        verify(function() {})->isCallable();
         verify(false)->notCallable();
+    }
+
+    public function testEqualsCanonicalizing()
+    {
+        verify([3, 2, 1])->equalsCanonicalizing([1, 2, 3]);
+    }
+
+    public function testNotEqualsCanonicalizing()
+    {
+        verify([3, 2, 1])->notEqualsCanonicalizing([2, 3, 0, 1]);
+    }
+
+    public function testEqualsIgnoringCase()
+    {
+        verify('foo')->equalsIgnoringCase('FOO');
+    }
+
+    public function testNotEqualsIgnoringCase()
+    {
+        verify('foo')->notEqualsIgnoringCase('BAR');
+    }
+
+    public function testEqualsWithDelta()
+    {
+        verify(1.01)->equalsWithDelta(1.0, 0.1);
+    }
+
+    public function testNotEqualsWithDelta()
+    {
+        verify(1.2)->notEqualsWithDelta(1.0, 0.1);
     }
 }
 

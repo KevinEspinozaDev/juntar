@@ -6,12 +6,12 @@ use Codeception\Util\Locator;
 
 class WebDriverNot extends WebDriver
 {
-    protected function matches($nodes) : bool
+    protected function matches($nodes)
     {
         return !parent::matches($nodes);
     }
 
-    protected function fail($nodes, $selector, ComparisonFailure $comparisonFailure = null) : void
+    protected function fail($nodes, $selector, ComparisonFailure $comparisonFailure = null)
     {
         if (!is_string($selector) || strpos($selector, "'") === false) {
             $selector = Locator::humanReadableString($selector);
@@ -34,7 +34,7 @@ class WebDriverNot extends WebDriver
         );
     }
 
-    public function toString() : string
+    public function toString()
     {
         if ($this->string) {
             return 'that contains text "' . $this->string . '"';

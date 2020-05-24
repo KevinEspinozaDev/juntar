@@ -67,7 +67,7 @@ class InputDefinition
      *
      * @param InputArgument[] $arguments An array of InputArgument objects
      */
-    public function setArguments(array $arguments = [])
+    public function setArguments($arguments = [])
     {
         $this->arguments = [];
         $this->requiredCount = 0;
@@ -81,7 +81,7 @@ class InputDefinition
      *
      * @param InputArgument[] $arguments An array of InputArgument objects
      */
-    public function addArguments(?array $arguments = [])
+    public function addArguments($arguments = [])
     {
         if (null !== $arguments) {
             foreach ($arguments as $argument) {
@@ -204,7 +204,7 @@ class InputDefinition
      *
      * @param InputOption[] $options An array of InputOption objects
      */
-    public function setOptions(array $options = [])
+    public function setOptions($options = [])
     {
         $this->options = [];
         $this->shortcuts = [];
@@ -216,7 +216,7 @@ class InputDefinition
      *
      * @param InputOption[] $options An array of InputOption objects
      */
-    public function addOptions(array $options = [])
+    public function addOptions($options = [])
     {
         foreach ($options as $option) {
             $this->addOption($option);
@@ -251,11 +251,13 @@ class InputDefinition
     /**
      * Returns an InputOption by name.
      *
+     * @param string $name The InputOption name
+     *
      * @return InputOption A InputOption object
      *
      * @throws InvalidArgumentException When option given doesn't exist
      */
-    public function getOption(string $name)
+    public function getOption($name)
     {
         if (!$this->hasOption($name)) {
             throw new InvalidArgumentException(sprintf('The "--%s" option does not exist.', $name));
@@ -270,9 +272,11 @@ class InputDefinition
      * This method can't be used to check if the user included the option when
      * executing the command (use getOption() instead).
      *
+     * @param string $name The InputOption name
+     *
      * @return bool true if the InputOption object exists, false otherwise
      */
-    public function hasOption(string $name)
+    public function hasOption($name)
     {
         return isset($this->options[$name]);
     }
@@ -290,9 +294,11 @@ class InputDefinition
     /**
      * Returns true if an InputOption object exists by shortcut.
      *
+     * @param string $name The InputOption shortcut
+     *
      * @return bool true if the InputOption object exists, false otherwise
      */
-    public function hasShortcut(string $name)
+    public function hasShortcut($name)
     {
         return isset($this->shortcuts[$name]);
     }
@@ -300,9 +306,11 @@ class InputDefinition
     /**
      * Gets an InputOption by shortcut.
      *
+     * @param string $shortcut The Shortcut name
+     *
      * @return InputOption An InputOption object
      */
-    public function getOptionForShortcut(string $shortcut)
+    public function getOptionForShortcut($shortcut)
     {
         return $this->getOption($this->shortcutToName($shortcut));
     }
@@ -325,11 +333,15 @@ class InputDefinition
     /**
      * Returns the InputOption name given a shortcut.
      *
+     * @param string $shortcut The shortcut
+     *
+     * @return string The InputOption name
+     *
      * @throws InvalidArgumentException When option given does not exist
      *
      * @internal
      */
-    public function shortcutToName(string $shortcut): string
+    public function shortcutToName($shortcut)
     {
         if (!isset($this->shortcuts[$shortcut])) {
             throw new InvalidArgumentException(sprintf('The "-%s" option does not exist.', $shortcut));
@@ -341,9 +353,11 @@ class InputDefinition
     /**
      * Gets the synopsis.
      *
+     * @param bool $short Whether to return the short version (with options folded) or not
+     *
      * @return string The synopsis
      */
-    public function getSynopsis(bool $short = false)
+    public function getSynopsis($short = false)
     {
         $elements = [];
 
@@ -370,21 +384,21 @@ class InputDefinition
             $elements[] = '[--]';
         }
 
-        $tail = '';
         foreach ($this->getArguments() as $argument) {
             $element = '<'.$argument->getName().'>';
-            if ($argument->isArray()) {
-                $element .= '...';
+            if (!$argument->isRequired()) {
+                $element = '['.$element.']';
+            } elseif ($argument->isArray()) {
+                $element .= ' ('.$element.')';
             }
 
-            if (!$argument->isRequired()) {
-                $element = '['.$element;
-                $tail .= ']';
+            if ($argument->isArray()) {
+                $element .= '...';
             }
 
             $elements[] = $element;
         }
 
-        return implode(' ', $elements).$tail;
+        return implode(' ', $elements);
     }
 }

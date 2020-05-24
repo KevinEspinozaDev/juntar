@@ -43,6 +43,10 @@ class ArgvInput extends Input
     private $tokens;
     private $parsed;
 
+    /**
+     * @param array|null           $argv       An array of parameters from the CLI (in the argv format)
+     * @param InputDefinition|null $definition A InputDefinition instance
+     */
     public function __construct(array $argv = null, InputDefinition $definition = null)
     {
         if (null === $argv) {
@@ -86,8 +90,10 @@ class ArgvInput extends Input
 
     /**
      * Parses a short option.
+     *
+     * @param string $token The current token
      */
-    private function parseShortOption(string $token)
+    private function parseShortOption($token)
     {
         $name = substr($token, 1);
 
@@ -106,9 +112,11 @@ class ArgvInput extends Input
     /**
      * Parses a short option set.
      *
+     * @param string $name The current token
+     *
      * @throws RuntimeException When option given doesn't exist
      */
-    private function parseShortOptionSet(string $name)
+    private function parseShortOptionSet($name)
     {
         $len = \strlen($name);
         for ($i = 0; $i < $len; ++$i) {
@@ -130,13 +138,20 @@ class ArgvInput extends Input
 
     /**
      * Parses a long option.
+     *
+     * @param string $token The current token
      */
-    private function parseLongOption(string $token)
+    private function parseLongOption($token)
     {
         $name = substr($token, 2);
 
         if (false !== $pos = strpos($name, '=')) {
             if (0 === \strlen($value = substr($name, $pos + 1))) {
+                // if no value after "=" then substr() returns "" since php7 only, false before
+                // see https://php.net/migration70.incompatible.php#119151
+                if (\PHP_VERSION_ID < 70000 && false === $value) {
+                    $value = '';
+                }
                 array_unshift($this->parsed, $value);
             }
             $this->addLongOption(substr($name, 0, $pos), $value);
@@ -148,9 +163,11 @@ class ArgvInput extends Input
     /**
      * Parses an argument.
      *
+     * @param string $token The current token
+     *
      * @throws RuntimeException When too many arguments are given
      */
-    private function parseArgument(string $token)
+    private function parseArgument($token)
     {
         $c = \count($this->arguments);
 
@@ -178,9 +195,12 @@ class ArgvInput extends Input
     /**
      * Adds a short option value.
      *
+     * @param string $shortcut The short option key
+     * @param mixed  $value    The value for the option
+     *
      * @throws RuntimeException When option given doesn't exist
      */
-    private function addShortOption(string $shortcut, $value)
+    private function addShortOption($shortcut, $value)
     {
         if (!$this->definition->hasShortcut($shortcut)) {
             throw new RuntimeException(sprintf('The "-%s" option does not exist.', $shortcut));
@@ -192,9 +212,12 @@ class ArgvInput extends Input
     /**
      * Adds a long option value.
      *
+     * @param string $name  The long option key
+     * @param mixed  $value The value for the option
+     *
      * @throws RuntimeException When option given doesn't exist
      */
-    private function addLongOption(string $name, $value)
+    private function addLongOption($name, $value)
     {
         if (!$this->definition->hasOption($name)) {
             throw new RuntimeException(sprintf('The "--%s" option does not exist.', $name));
@@ -272,7 +295,7 @@ class ArgvInput extends Input
     /**
      * {@inheritdoc}
      */
-    public function hasParameterOption($values, bool $onlyParams = false)
+    public function hasParameterOption($values, $onlyParams = false)
     {
         $values = (array) $values;
 
@@ -297,7 +320,7 @@ class ArgvInput extends Input
     /**
      * {@inheritdoc}
      */
-    public function getParameterOption($values, $default = false, bool $onlyParams = false)
+    public function getParameterOption($values, $default = false, $onlyParams = false)
     {
         $values = (array) $values;
         $tokens = $this->tokens;
