@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 /*
  * This file is part of PHPUnit.
  *
@@ -7,9 +7,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace PHPUnit\Framework\Constraint;
-
-use ReflectionObject;
 
 /**
  * Constraint that asserts that the object it is evaluated for has a given
@@ -17,16 +14,20 @@ use ReflectionObject;
  *
  * The attribute name is passed in the constructor.
  */
-final class ObjectHasAttribute extends ClassHasAttribute
+class PHPUnit_Framework_Constraint_ObjectHasAttribute extends PHPUnit_Framework_Constraint_ClassHasAttribute
 {
     /**
      * Evaluates the constraint for parameter $other. Returns true if the
      * constraint is met, false otherwise.
      *
-     * @param mixed $other value or object to evaluate
+     * @param mixed $other Value or object to evaluate.
+     *
+     * @return bool
      */
-    protected function matches($other): bool
+    protected function matches($other)
     {
-        return (new ReflectionObject($other))->hasProperty($this->attributeName());
+        $object = new ReflectionObject($other);
+
+        return $object->hasProperty($this->attributeName);
     }
 }

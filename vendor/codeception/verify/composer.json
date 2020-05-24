@@ -5,18 +5,15 @@
     "authors": [
         {
             "name": "Michael Bodnarchuk",
-            "email": "davert@codeception.com"
+            "email": "davert.php@mailican.com"
         }
     ],
     "require": {
-        "php": ">= 7.0",
-        "phpunit/phpunit": "> 6.0",
-        "codeception/phpunit-wrapper": ">6.0.15 <6.1.0 | ^6.6.1 | ^7.7.1 | ^8.0.4"
+        "php": "5.6.*",
+        "phpunit/phpunit": "5.7.*",
+        "codeception/phpunit-wrapper": ">6.0.16 <6.1.0"
     },
     "autoload": {
-        "files": ["src/Codeception/function.php"],
-        "psr-4":{
-            "Codeception\\": "src\\Codeception"
-        }
+        "files": ["src/Codeception/function.php"]
     }
 }

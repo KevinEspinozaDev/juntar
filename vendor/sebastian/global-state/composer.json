@@ -10,19 +10,11 @@
             "email": "sebastian@phpunit.de"
         }
     ],
-    "prefer-stable": true,
-    "config": {
-        "optimize-autoloader": true,
-        "sort-packages": true
-    },
     "require": {
-        "php": "^7.2",
-        "sebastian/object-reflector": "^1.1.1",
-        "sebastian/recursion-context": "^3.0"
+        "php": ">=5.3.3"
     },
     "require-dev": {
-        "ext-dom": "*",
-        "phpunit/phpunit": "^8.0"
+        "phpunit/phpunit": "~4.2"
     },
     "suggest": {
         "ext-uopz": "*"
@@ -35,14 +27,11 @@
     "autoload-dev": {
         "classmap": [
             "tests/_fixture/"
-        ],
-        "files": [
-            "tests/_fixture/SnapshotFunctions.php"
         ]
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "3.0-dev"
+            "dev-master": "1.0-dev"
         }
     }
 }

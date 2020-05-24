@@ -61,8 +61,11 @@ abstract class Descriptor implements DescriptorInterface
 
     /**
      * Writes content to output.
+     *
+     * @param string $content
+     * @param bool   $decorated
      */
-    protected function write(string $content, bool $decorated = false)
+    protected function write($content, $decorated = false)
     {
         $this->output->write($content, false, $decorated ? OutputInterface::OUTPUT_NORMAL : OutputInterface::OUTPUT_RAW);
     }
