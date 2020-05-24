@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ .'/ResetMocks.php';
 
-class StubTraitTest extends \PHPUnit\Framework\TestCase
+class StubTraitTest extends \Codeception\PHPUnit\TestCase
 {
     use ResetMocks;
     use \Codeception\Test\Feature\Stub;
@@ -10,7 +10,7 @@ class StubTraitTest extends \PHPUnit\Framework\TestCase
      */
     protected $dummy;
 
-    public function setUp(): void
+    public function _setUp()
     {
         require_once $file = __DIR__. '/_data/DummyOverloadableClass.php';
         require_once $file = __DIR__. '/_data/DummyClass.php';

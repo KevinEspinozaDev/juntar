@@ -1,120 +1,119 @@
-<?php declare(strict_types=1);
+<?php
 /*
- * This file is part of sebastian/global-state.
+ * This file is part of the GlobalState package.
  *
  * (c) Sebastian Bergmann <sebastian@phpunit.de>
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace SebastianBergmann\GlobalState;
 
-use PHPUnit\Framework\TestCase;
-use SebastianBergmann\GlobalState\TestFixture\BlacklistedInterface;
+use ArrayObject;
+use PHPUnit_Framework_TestCase;
 use SebastianBergmann\GlobalState\TestFixture\SnapshotClass;
-use SebastianBergmann\GlobalState\TestFixture\SnapshotTrait;
 
 /**
- * @covers \SebastianBergmann\GlobalState\Snapshot
- *
- * @uses \SebastianBergmann\GlobalState\Blacklist
  */
-final class SnapshotTest extends TestCase
+class SnapshotTest extends PHPUnit_Framework_TestCase
 {
-    /**
-     * @var Blacklist
-     */
-    private $blacklist;
-
-    protected function setUp(): void
+    public function testStaticAttributes()
     {
-        $this->blacklist = new Blacklist;
-    }
+        $blacklist = $this->getBlacklist();
+        $blacklist->method('isStaticAttributeBlacklisted')->willReturnCallback(function ($class) {
+            return $class !== 'SebastianBergmann\GlobalState\TestFixture\SnapshotClass';
+        });
 
-    public function testStaticAttributes(): void
-    {
         SnapshotClass::init();
 
-        $this->blacklistAllLoadedClassesExceptSnapshotClass();
-
-        $snapshot = new Snapshot($this->blacklist, false, true, false, false, false, false, false, false, false);
-
-        $expected = [
-            SnapshotClass::class => [
-                'string'  => 'string',
-                'objects' => [new \stdClass],
-            ],
-        ];
+        $snapshot = new Snapshot($blacklist, false, true, false, false, false, false, false, false, false);
+        $expected = array('SebastianBergmann\GlobalState\TestFixture\SnapshotClass' => array(
+            'string' => 'snapshot',
+            'arrayObject' => new ArrayObject(array(1, 2, 3)),
+            'stdClass' => new \stdClass(),
+        ));
 
         $this->assertEquals($expected, $snapshot->staticAttributes());
     }
 
-    public function testConstants(): void
+    public function testConstants()
     {
-        $snapshot = new Snapshot($this->blacklist, false, false, true, false, false, false, false, false, false);
-
+        $snapshot = new Snapshot($this->getBlacklist(), false, false, true, false, false, false, false, false, false);
         $this->assertArrayHasKey('GLOBALSTATE_TESTSUITE', $snapshot->constants());
     }
 
-    public function testFunctions(): void
+    public function testFunctions()
     {
-        $snapshot  = new Snapshot($this->blacklist, false, false, false, true, false, false, false, false, false);
+        require_once __DIR__.'/_fixture/SnapshotFunctions.php';
+
+        $snapshot = new Snapshot($this->getBlacklist(), false, false, false, true, false, false, false, false, false);
         $functions = $snapshot->functions();
 
-        $this->assertContains('sebastianbergmann\globalstate\testfixture\snapshotfunction', $functions);
+        $this->assertThat(
+            $functions,
+            $this->logicalOr(
+                // Zend
+                $this->contains('sebastianbergmann\globalstate\testfixture\snapshotfunction'),
+                // HHVM
+                $this->contains('SebastianBergmann\GlobalState\TestFixture\snapshotFunction')
+            )
+        );
+
         $this->assertNotContains('assert', $functions);
     }
 
-    public function testClasses(): void
+    public function testClasses()
     {
-        $snapshot = new Snapshot($this->blacklist, false, false, false, false, true, false, false, false, false);
-        $classes  = $snapshot->classes();
+        $snapshot = new Snapshot($this->getBlacklist(), false, false, false, false, true, false, false, false, false);
+        $classes = $snapshot->classes();
 
-        $this->assertContains(TestCase::class, $classes);
-        $this->assertNotContains(Exception::class, $classes);
+        $this->assertContains('PHPUnit_Framework_TestCase', $classes);
+        $this->assertNotContains('Exception', $classes);
     }
 
-    public function testInterfaces(): void
+    public function testInterfaces()
     {
-        $snapshot   = new Snapshot($this->blacklist, false, false, false, false, false, true, false, false, false);
+        $snapshot = new Snapshot($this->getBlacklist(), false, false, false, false, false, true, false, false, false);
         $interfaces = $snapshot->interfaces();
 
-        $this->assertContains(BlacklistedInterface::class, $interfaces);
-        $this->assertNotContains(\Countable::class, $interfaces);
+        $this->assertContains('PHPUnit_Framework_Test', $interfaces);
+        $this->assertNotContains('Countable', $interfaces);
     }
 
-    public function testTraits(): void
+    /**
+     * @requires PHP 5.4
+     */
+    public function testTraits()
     {
-        \spl_autoload_call('SebastianBergmann\GlobalState\TestFixture\SnapshotTrait');
+        spl_autoload_call('SebastianBergmann\GlobalState\TestFixture\SnapshotTrait');
 
-        $snapshot = new Snapshot($this->blacklist, false, false, false, false, false, false, true, false, false);
-
-        $this->assertContains(SnapshotTrait::class, $snapshot->traits());
+        $snapshot = new Snapshot($this->getBlacklist(), false, false, false, false, false, false, true, false, false);
+        $this->assertContains('SebastianBergmann\GlobalState\TestFixture\SnapshotTrait', $snapshot->traits());
     }
 
-    public function testIniSettings(): void
+    public function testIniSettings()
     {
-        $snapshot    = new Snapshot($this->blacklist, false, false, false, false, false, false, false, true, false);
+        $snapshot = new Snapshot($this->getBlacklist(), false, false, false, false, false, false, false, true, false);
         $iniSettings = $snapshot->iniSettings();
 
         $this->assertArrayHasKey('date.timezone', $iniSettings);
         $this->assertEquals('Etc/UTC', $iniSettings['date.timezone']);
     }
 
-    public function testIncludedFiles(): void
+    public function testIncludedFiles()
     {
-        $snapshot = new Snapshot($this->blacklist, false, false, false, false, false, false, false, false, true);
+        $snapshot = new Snapshot($this->getBlacklist(), false, false, false, false, false, false, false, false, true);
         $this->assertContains(__FILE__, $snapshot->includedFiles());
     }
 
-    private function blacklistAllLoadedClassesExceptSnapshotClass(): void
+    /**
+     * @return \SebastianBergmann\GlobalState\Blacklist
+     */
+    private function getBlacklist()
     {
-        foreach (\get_declared_classes() as $class) {
-            if ($class === SnapshotClass::class) {
-                continue;
-            }
-
-            $this->blacklist->addClass($class);
-        }
+        return $this->getMockBuilder('SebastianBergmann\GlobalState\Blacklist')
+                    ->disableOriginalConstructor()
+                    ->getMock();
     }
 }

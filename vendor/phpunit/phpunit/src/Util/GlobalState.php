@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 /*
  * This file is part of PHPUnit.
  *
@@ -7,69 +7,70 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace PHPUnit\Util;
 
-use Closure;
-
-/**
- * @internal This class is not covered by the backward compatibility promise for PHPUnit
- */
-final class GlobalState
+class PHPUnit_Util_GlobalState
 {
     /**
-     * @var string[]
+     * @var array
      */
-    private const SUPER_GLOBAL_ARRAYS = [
-        '_ENV',
-        '_POST',
-        '_GET',
-        '_COOKIE',
-        '_SERVER',
-        '_FILES',
-        '_REQUEST',
+    protected static $superGlobalArrays = [
+      '_ENV',
+      '_POST',
+      '_GET',
+      '_COOKIE',
+      '_SERVER',
+      '_FILES',
+      '_REQUEST'
     ];
 
     /**
-     * @throws Exception
+     * @var array
      */
-    public static function getIncludedFilesAsString(): string
+    protected static $superGlobalArraysLong = [
+      'HTTP_ENV_VARS',
+      'HTTP_POST_VARS',
+      'HTTP_GET_VARS',
+      'HTTP_COOKIE_VARS',
+      'HTTP_SERVER_VARS',
+      'HTTP_POST_FILES'
+    ];
+
+    /**
+     * @return string
+     */
+    public static function getIncludedFilesAsString()
     {
-        return static::processIncludedFilesAsString(\get_included_files());
+        return static::processIncludedFilesAsString(get_included_files());
     }
 
     /**
-     * @param string[] $files
+     * @param array $files
      *
-     * @throws Exception
+     * @return string
      */
-    public static function processIncludedFilesAsString(array $files): string
+    public static function processIncludedFilesAsString(array $files)
     {
-        $blacklist = new Blacklist;
+        $blacklist = new PHPUnit_Util_Blacklist;
         $prefix    = false;
         $result    = '';
 
-        if (\defined('__PHPUNIT_PHAR__')) {
+        if (defined('__PHPUNIT_PHAR__')) {
             $prefix = 'phar://' . __PHPUNIT_PHAR__ . '/';
         }
 
-        for ($i = \count($files) - 1; $i > 0; $i--) {
+        for ($i = count($files) - 1; $i > 0; $i--) {
             $file = $files[$i];
 
-            if (!empty($GLOBALS['__PHPUNIT_ISOLATION_BLACKLIST']) &&
-                \in_array($file, $GLOBALS['__PHPUNIT_ISOLATION_BLACKLIST'])) {
-                continue;
-            }
-
-            if ($prefix !== false && \strpos($file, $prefix) === 0) {
+            if ($prefix !== false && strpos($file, $prefix) === 0) {
                 continue;
             }
 
             // Skip virtual file system protocols
-            if (\preg_match('/^(vfs|phpvfs[a-z0-9]+):/', $file)) {
+            if (preg_match('/^(vfs|phpvfs[a-z0-9]+):/', $file)) {
                 continue;
             }
 
-            if (!$blacklist->isBlacklisted($file) && \is_file($file)) {
+            if (!$blacklist->isBlacklisted($file) && is_file($file)) {
                 $result = 'require_once \'' . $file . "';\n" . $result;
             }
         }
@@ -77,29 +78,36 @@ final class GlobalState
         return $result;
     }
 
-    public static function getIniSettingsAsString(): string
+    /**
+     * @return string
+     */
+    public static function getIniSettingsAsString()
     {
-        $result = '';
+        $result      = '';
+        $iniSettings = ini_get_all(null, false);
 
-        foreach (\ini_get_all(null, false) as $key => $value) {
-            $result .= \sprintf(
+        foreach ($iniSettings as $key => $value) {
+            $result .= sprintf(
                 '@ini_set(%s, %s);' . "\n",
                 self::exportVariable($key),
-                self::exportVariable((string) $value)
+                self::exportVariable($value)
             );
         }
 
         return $result;
     }
 
-    public static function getConstantsAsString(): string
+    /**
+     * @return string
+     */
+    public static function getConstantsAsString()
     {
-        $constants = \get_defined_constants(true);
+        $constants = get_defined_constants(true);
         $result    = '';
 
         if (isset($constants['user'])) {
             foreach ($constants['user'] as $name => $value) {
-                $result .= \sprintf(
+                $result .= sprintf(
                     'if (!defined(\'%s\')) define(\'%s\', %s);' . "\n",
                     $name,
                     $name,
@@ -111,18 +119,23 @@ final class GlobalState
         return $result;
     }
 
-    public static function getGlobalsAsString(): string
+    /**
+     * @return string
+     */
+    public static function getGlobalsAsString()
     {
-        $result = '';
+        $result            = '';
+        $superGlobalArrays = self::getSuperGlobalArrays();
 
-        foreach (self::SUPER_GLOBAL_ARRAYS as $superGlobalArray) {
-            if (isset($GLOBALS[$superGlobalArray]) && \is_array($GLOBALS[$superGlobalArray])) {
-                foreach (\array_keys($GLOBALS[$superGlobalArray]) as $key) {
+        foreach ($superGlobalArrays as $superGlobalArray) {
+            if (isset($GLOBALS[$superGlobalArray]) &&
+                is_array($GLOBALS[$superGlobalArray])) {
+                foreach (array_keys($GLOBALS[$superGlobalArray]) as $key) {
                     if ($GLOBALS[$superGlobalArray][$key] instanceof Closure) {
                         continue;
                     }
 
-                    $result .= \sprintf(
+                    $result .= sprintf(
                         '$GLOBALS[\'%s\'][\'%s\'] = %s;' . "\n",
                         $superGlobalArray,
                         $key,
@@ -132,12 +145,12 @@ final class GlobalState
             }
         }
 
-        $blacklist   = self::SUPER_GLOBAL_ARRAYS;
+        $blacklist   = $superGlobalArrays;
         $blacklist[] = 'GLOBALS';
 
-        foreach (\array_keys($GLOBALS) as $key) {
-            if (!$GLOBALS[$key] instanceof Closure && !\in_array($key, $blacklist, true)) {
-                $result .= \sprintf(
+        foreach (array_keys($GLOBALS) as $key) {
+            if (!in_array($key, $blacklist) && !$GLOBALS[$key] instanceof Closure) {
+                $result .= sprintf(
                     '$GLOBALS[\'%s\'] = %s;' . "\n",
                     $key,
                     self::exportVariable($GLOBALS[$key])
@@ -148,28 +161,50 @@ final class GlobalState
         return $result;
     }
 
-    private static function exportVariable($variable): string
+    /**
+     * @return array
+     */
+    protected static function getSuperGlobalArrays()
     {
-        if (\is_scalar($variable) || $variable === null ||
-            (\is_array($variable) && self::arrayOnlyContainsScalars($variable))) {
-            return \var_export($variable, true);
+        if (ini_get('register_long_arrays') == '1') {
+            return array_merge(
+                self::$superGlobalArrays,
+                self::$superGlobalArraysLong
+            );
+        } else {
+            return self::$superGlobalArrays;
         }
-
-        return 'unserialize(' . \var_export(\serialize($variable), true) . ')';
     }
 
-    private static function arrayOnlyContainsScalars(array $array): bool
+    protected static function exportVariable($variable)
+    {
+        if (is_scalar($variable) || is_null($variable) ||
+           (is_array($variable) && self::arrayOnlyContainsScalars($variable))) {
+            return var_export($variable, true);
+        }
+
+        return 'unserialize(' .
+                var_export(serialize($variable), true) .
+                ')';
+    }
+
+    /**
+     * @param array $array
+     *
+     * @return bool
+     */
+    protected static function arrayOnlyContainsScalars(array $array)
     {
         $result = true;
 
         foreach ($array as $element) {
-            if (\is_array($element)) {
+            if (is_array($element)) {
                 $result = self::arrayOnlyContainsScalars($element);
-            } elseif (!\is_scalar($element) && $element !== null) {
+            } elseif (!is_scalar($element) && !is_null($element)) {
                 $result = false;
             }
 
-            if (!$result) {
+            if ($result === false) {
                 break;
             }
         }

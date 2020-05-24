@@ -1,14 +1,12 @@
 Verify
 ======
 
-BDD Assertions for [PHPUnit][1] or [Codeception][2]
+BDD Assertions for [PHPUnit][1] and [Codeception][2]
 
 This is very tiny wrapper for PHPUnit assertions, that are aimed to make tests a bit more readable.
 With [BDD][3] assertions influenced by [Chai][4], [Jasmine][5], and [RSpec][6] your assertions would be a bit closer to natural language.
 
-[![Build Status](https://travis-ci.org/Codeception/Verify.png?branch=master)](https://travis-ci.org/Codeception/Verify)
-[![Latest Stable Version](https://poser.pugx.org/codeception/verify/v/stable)](https://packagist.org/packages/codeception/verify)
-[![Total Downloads](https://poser.pugx.org/codeception/verify/downloads)](https://packagist.org/packages/codeception/verify)
+[![Build Status](https://travis-ci.org/Codeception/Verify.png?branch=master)](https://travis-ci.org/Codeception/Verify) [![Latest Stable Version](https://poser.pugx.org/codeception/verify/v/stable.png)](https://packagist.org/packages/codeception/verify)
 
 ```php
 $user = User::find(1);
@@ -48,7 +46,7 @@ verify($user->getRoles())->notEmpty();
 * stringNotContainsString
 * stringContainsStringIgnoringCase
 * stringNotContainsStringIgnoringCase
-* array
+* isArray
 * bool
 * float
 * int
@@ -57,7 +55,7 @@ verify($user->getRoles())->notEmpty();
 * resource
 * string
 * scalar
-* callable
+* isCallable
 * notArray
 * notBool
 * notFloat
@@ -68,6 +66,12 @@ verify($user->getRoles())->notEmpty();
 * notString
 * notScalar
 * notCallable
+* equalsCanonicalizing
+* notEqualsCanonicalizing
+* equalsIgnoringCase
+* notEqualsIgnoringCase
+* equalsWithDelta
+* notEqualsWithDelta
 ```
 
 Shorthands for testing truth/fallacy:
@@ -105,7 +109,7 @@ Create the `composer.json` file as follows:
 
 ```json
 "require-dev": {
-    "codeception/verify": "^1.0"
+    "codeception/verify": "*"
 }
 ```
 
@@ -121,27 +125,7 @@ Use in any test `verify` function instead of `$this->assert*` methods.
 
 ## Extending
 
-In order to add more assertions you can override `Codeception\Verify` class:
-
-```php
-class MyVerify extends \Codeception\Verify {
-
-    public function success()
-    {
-    }
-
-}
-```
-
-Set the class name to `Codeception\Verify::$override` property to `verify` function use it:
-  
-```php
-
-\Codeception\Verify::$override = MyVerify::class;
-
-// access overridden class
-verify('it works')->success();
-```
+`Codeception\Verify` class can be extended with custom assertions. You write your own `verify` function that would instantiate your extended version of Verify class.
 
 ## License
 

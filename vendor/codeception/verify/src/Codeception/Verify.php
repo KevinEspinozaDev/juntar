@@ -5,8 +5,6 @@ use \Codeception\PHPUnit\TestCase as a;
 
 class Verify {
 
-    public static $override = false;
-
     protected $actual = null;
     protected $description = '';
     protected $isFileExpectation = false;
@@ -17,12 +15,11 @@ class Verify {
 
         if (!$descriptionGiven) {
             $this->actual = $description;
-            return;
+        } else {
+            $actual = func_get_args();
+            $this->actual = $actual[1];
+            $this->description = $description;
         }
-
-        $actual = func_get_args();
-        $this->actual = $actual[1];
-        $this->description = $description;
     }
 
     /**
@@ -328,7 +325,7 @@ class Verify {
         a::assertStringNotContainsStringIgnoringCase($needle, $this->actual, $this->description);
     }
 
-    public function array()
+    public function isArray()
     {
         a::assertIsArray($this->actual, $this->description);
     }
@@ -373,7 +370,7 @@ class Verify {
         a::assertIsScalar($this->actual, $this->description);
     }
 
-    public function callable()
+    public function isCallable()
     {
         a::assertIsCallable($this->actual, $this->description);
     }
@@ -426,5 +423,35 @@ class Verify {
     public function notCallable()
     {
         a::assertIsNotCallable($this->actual, $this->description);
+    }
+
+    public function equalsCanonicalizing($expected)
+    {
+        a::assertEqualsCanonicalizing($expected, $this->actual, $this->description);
+    }
+
+    public function notEqualsCanonicalizing($expected)
+    {
+        a::assertNotEqualsCanonicalizing($expected, $this->actual, $this->description);
+    }
+
+    public function equalsIgnoringCase($expected)
+    {
+        a::assertEqualsIgnoringCase($expected, $this->actual, $this->description);
+    }
+
+    public function notEqualsIgnoringCase($expected)
+    {
+        a::assertNotEqualsIgnoringCase($expected, $this->actual, $this->description);
+    }
+
+    public function equalsWithDelta($expected, $delta)
+    {
+        a::assertEqualsWithDelta($expected, $this->actual, $delta, $this->description);
+    }
+
+    public function notEqualsWithDelta($expected, $delta)
+    {
+        a::assertNotEqualsWithDelta($expected, $this->actual, $delta, $this->description);
     }
 }

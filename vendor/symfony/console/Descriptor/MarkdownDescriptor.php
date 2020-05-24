@@ -44,7 +44,7 @@ class MarkdownDescriptor extends Descriptor
     /**
      * {@inheritdoc}
      */
-    protected function write(string $content, bool $decorated = true)
+    protected function write($content, $decorated = true)
     {
         parent::write($content, $decorated);
     }
@@ -92,9 +92,7 @@ class MarkdownDescriptor extends Descriptor
             $this->write('### Arguments');
             foreach ($definition->getArguments() as $argument) {
                 $this->write("\n\n");
-                if (null !== $describeInputArgument = $this->describeInputArgument($argument)) {
-                    $this->write($describeInputArgument);
-                }
+                $this->write($this->describeInputArgument($argument));
             }
         }
 
@@ -106,9 +104,7 @@ class MarkdownDescriptor extends Descriptor
             $this->write('### Options');
             foreach ($definition->getOptions() as $option) {
                 $this->write("\n\n");
-                if (null !== $describeInputOption = $this->describeInputOption($option)) {
-                    $this->write($describeInputOption);
-                }
+                $this->write($this->describeInputOption($option));
             }
         }
     }
@@ -167,13 +163,11 @@ class MarkdownDescriptor extends Descriptor
 
         foreach ($description->getCommands() as $command) {
             $this->write("\n\n");
-            if (null !== $describeCommand = $this->describeCommand($command)) {
-                $this->write($describeCommand);
-            }
+            $this->write($this->describeCommand($command));
         }
     }
 
-    private function getApplicationTitle(Application $application): string
+    private function getApplicationTitle(Application $application)
     {
         if ('UNKNOWN' !== $application->getName()) {
             if ('UNKNOWN' !== $application->getVersion()) {

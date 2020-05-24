@@ -30,7 +30,7 @@ class ChoiceQuestion extends Question
      * @param array  $choices  The list of available choices
      * @param mixed  $default  The default answer to return
      */
-    public function __construct(string $question, array $choices, $default = null)
+    public function __construct($question, array $choices, $default = null)
     {
         if (!$choices) {
             throw new \LogicException('Choice question must have at least 1 choice available.');
@@ -58,9 +58,11 @@ class ChoiceQuestion extends Question
      *
      * When multiselect is set to true, multiple choices can be answered.
      *
+     * @param bool $multiselect
+     *
      * @return $this
      */
-    public function setMultiselect(bool $multiselect)
+    public function setMultiselect($multiselect)
     {
         $this->multiselect = $multiselect;
         $this->setValidator($this->getDefaultValidator());
@@ -91,9 +93,11 @@ class ChoiceQuestion extends Question
     /**
      * Sets the prompt for choices.
      *
+     * @param string $prompt
+     *
      * @return $this
      */
-    public function setPrompt(string $prompt)
+    public function setPrompt($prompt)
     {
         $this->prompt = $prompt;
 
@@ -105,9 +109,11 @@ class ChoiceQuestion extends Question
      *
      * The error message has a string placeholder (%s) for the invalid value.
      *
+     * @param string $errorMessage
+     *
      * @return $this
      */
-    public function setErrorMessage(string $errorMessage)
+    public function setErrorMessage($errorMessage)
     {
         $this->errorMessage = $errorMessage;
         $this->setValidator($this->getDefaultValidator());
@@ -115,7 +121,12 @@ class ChoiceQuestion extends Question
         return $this;
     }
 
-    private function getDefaultValidator(): callable
+    /**
+     * Returns the default answer validator.
+     *
+     * @return callable
+     */
+    private function getDefaultValidator()
     {
         $choices = $this->choices;
         $errorMessage = $this->errorMessage;
@@ -129,15 +140,9 @@ class ChoiceQuestion extends Question
                     throw new InvalidArgumentException(sprintf($errorMessage, $selected));
                 }
 
-                $selectedChoices = explode(',', $selected);
+                $selectedChoices = array_map('trim', explode(',', $selected));
             } else {
-                $selectedChoices = [$selected];
-            }
-
-            if ($this->isTrimmable()) {
-                foreach ($selectedChoices as $k => $v) {
-                    $selectedChoices[$k] = trim($v);
-                }
+                $selectedChoices = [trim($selected)];
             }
 
             $multiselectChoices = [];

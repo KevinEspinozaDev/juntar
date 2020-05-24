@@ -11,7 +11,7 @@
 
 namespace Symfony\Component\EventDispatcher\Debug;
 
-use Psr\EventDispatcher\StoppableEventInterface;
+use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Component\VarDumper\Caster\ClassStub;
@@ -19,10 +19,9 @@ use Symfony\Component\VarDumper\Caster\ClassStub;
 /**
  * @author Fabien Potencier <fabien@symfony.com>
  */
-final class WrappedListener
+class WrappedListener
 {
     private $listener;
-    private $optimizedListener;
     private $name;
     private $called;
     private $stoppedPropagation;
@@ -33,10 +32,9 @@ final class WrappedListener
     private $priority;
     private static $hasClassStub;
 
-    public function __construct($listener, ?string $name, Stopwatch $stopwatch, EventDispatcherInterface $dispatcher = null)
+    public function __construct($listener, $name, Stopwatch $stopwatch, EventDispatcherInterface $dispatcher = null)
     {
         $this->listener = $listener;
-        $this->optimizedListener = $listener instanceof \Closure ? $listener : (\is_callable($listener) ? \Closure::fromCallable($listener) : null);
         $this->stopwatch = $stopwatch;
         $this->dispatcher = $dispatcher;
         $this->called = false;
@@ -76,22 +74,22 @@ final class WrappedListener
         return $this->listener;
     }
 
-    public function wasCalled(): bool
+    public function wasCalled()
     {
         return $this->called;
     }
 
-    public function stoppedPropagation(): bool
+    public function stoppedPropagation()
     {
         return $this->stoppedPropagation;
     }
 
-    public function getPretty(): string
+    public function getPretty()
     {
         return $this->pretty;
     }
 
-    public function getInfo(string $eventName): array
+    public function getInfo($eventName)
     {
         if (null === $this->stub) {
             $this->stub = self::$hasClassStub ? new ClassStub($this->pretty.'()', $this->listener) : $this->pretty.'()';
@@ -105,7 +103,7 @@ final class WrappedListener
         ];
     }
 
-    public function __invoke(object $event, string $eventName, EventDispatcherInterface $dispatcher): void
+    public function __invoke(Event $event, $eventName, EventDispatcherInterface $dispatcher)
     {
         $dispatcher = $this->dispatcher ?: $dispatcher;
 
@@ -114,13 +112,13 @@ final class WrappedListener
 
         $e = $this->stopwatch->start($this->name, 'event_listener');
 
-        ($this->optimizedListener ?? $this->listener)($event, $eventName, $dispatcher);
+        \call_user_func($this->listener, $event, $eventName, $dispatcher);
 
         if ($e->isStarted()) {
             $e->stop();
         }
 
-        if ($event instanceof StoppableEventInterface && $event->isPropagationStopped()) {
+        if ($event->isPropagationStopped()) {
             $this->stoppedPropagation = true;
         }
     }

@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 /*
  * This file is part of PHPUnit.
  *
@@ -7,35 +7,35 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace PHPUnit\Framework\Constraint;
-
-use PHPUnit\Framework\ExpectationFailedException;
 
 /**
  * Constraint that asserts that the Traversable it is applied to contains
  * only values of a given type.
  */
-final class TraversableContainsOnly extends Constraint
+class PHPUnit_Framework_Constraint_TraversableContainsOnly extends PHPUnit_Framework_Constraint
 {
     /**
-     * @var Constraint
+     * @var PHPUnit_Framework_Constraint
      */
-    private $constraint;
+    protected $constraint;
 
     /**
      * @var string
      */
-    private $type;
+    protected $type;
 
     /**
-     * @throws \PHPUnit\Framework\Exception
+     * @param string $type
+     * @param bool   $isNativeType
      */
-    public function __construct(string $type, bool $isNativeType = true)
+    public function __construct($type, $isNativeType = true)
     {
+        parent::__construct();
+
         if ($isNativeType) {
-            $this->constraint = new IsType($type);
+            $this->constraint = new PHPUnit_Framework_Constraint_IsType($type);
         } else {
-            $this->constraint = new IsInstanceOf(
+            $this->constraint = new PHPUnit_Framework_Constraint_IsInstanceOf(
                 $type
             );
         }
@@ -53,17 +53,21 @@ final class TraversableContainsOnly extends Constraint
      * a boolean value instead: true in case of success, false in case of a
      * failure.
      *
-     * @throws ExpectationFailedException
-     * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
+     * @param mixed  $other        Value or object to evaluate.
+     * @param string $description  Additional information about the test
+     * @param bool   $returnResult Whether to return a result or throw an exception
+     *
+     * @return mixed
+     *
+     * @throws PHPUnit_Framework_ExpectationFailedException
      */
-    public function evaluate($other, string $description = '', bool $returnResult = false)
+    public function evaluate($other, $description = '', $returnResult = false)
     {
         $success = true;
 
         foreach ($other as $item) {
             if (!$this->constraint->evaluate($item, '', true)) {
                 $success = false;
-
                 break;
             }
         }
@@ -79,8 +83,10 @@ final class TraversableContainsOnly extends Constraint
 
     /**
      * Returns a string representation of the constraint.
+     *
+     * @return string
      */
-    public function toString(): string
+    public function toString()
     {
         return 'contains only values of type "' . $this->type . '"';
     }

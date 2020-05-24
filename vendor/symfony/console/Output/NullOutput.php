@@ -44,7 +44,7 @@ class NullOutput implements OutputInterface
     /**
      * {@inheritdoc}
      */
-    public function setDecorated(bool $decorated)
+    public function setDecorated($decorated)
     {
         // do nothing
     }
@@ -60,7 +60,7 @@ class NullOutput implements OutputInterface
     /**
      * {@inheritdoc}
      */
-    public function setVerbosity(int $level)
+    public function setVerbosity($level)
     {
         // do nothing
     }
@@ -108,7 +108,7 @@ class NullOutput implements OutputInterface
     /**
      * {@inheritdoc}
      */
-    public function writeln($messages, int $options = self::OUTPUT_NORMAL)
+    public function writeln($messages, $options = self::OUTPUT_NORMAL)
     {
         // do nothing
     }
@@ -116,7 +116,7 @@ class NullOutput implements OutputInterface
     /**
      * {@inheritdoc}
      */
-    public function write($messages, bool $newline = false, int $options = self::OUTPUT_NORMAL)
+    public function write($messages, $newline = false, $options = self::OUTPUT_NORMAL)
     {
         // do nothing
     }
