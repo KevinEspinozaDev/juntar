@@ -1,6 +1,8 @@
 <?php
 
 namespace app\models;
+const ROLE_USER = 10;
+const ROLE_ADMIN = 20;
 
 class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
 {
@@ -9,6 +11,8 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
     public $password;
     public $authKey;
     public $accessToken;
+
+    
 
     private static $users = [
         '100' => [
@@ -25,6 +29,8 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
             'authKey' => 'test101key',
             'accessToken' => '101-token',
         ],
+        ['role', 'default', 'value' => 10],
+        ['role', 'in', 'range' => [self::ROLE_USER, self::ROLE_ADMIN]],
     ];
 
 
@@ -100,5 +106,17 @@ class User extends \yii\base\BaseObject implements \yii\web\IdentityInterface
     public function validatePassword($password)
     {
         return $this->password === $password;
+    }
+
+    public static function isUserAdmin($username)
+    {
+        if (static::findOne(['username' => $username, 'role' => self::ROLE_ADMIN])){
+                            
+                return true;
+        } else {
+                            
+                return false;
+        }
+            
     }
 }
